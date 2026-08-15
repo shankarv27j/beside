@@ -1,0 +1,386 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #14231c;
+  --moss: #1f4d3a;
+  --leaf: #3d7a5f;
+  --sand: #e7efea;
+  --paper: #f4f8f6;
+  --sun: #e2a84b;
+  --coral: #c45c4a;
+  --line: rgba(20, 35, 28, 0.12);
+  --shadow: 0 18px 50px rgba(20, 35, 28, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  color: var(--ink);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(61, 122, 95, 0.18), transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, rgba(226, 168, 75, 0.16), transparent 50%),
+    linear-gradient(180deg, #eef5f1 0%, var(--paper) 40%, #e8f0eb 100%);
+}
+
+a {
+  color: var(--moss);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  font-size: 0.9em;
+  background: rgba(20, 35, 28, 0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.shell {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+.hero {
+  margin-bottom: 1.75rem;
+  animation: rise 0.7s ease both;
+}
+
+.brand-hero {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2.8rem, 7vw, 4.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--moss);
+  margin: 0.2rem 0 0.75rem;
+}
+
+.brand {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--moss);
+  text-decoration: none;
+}
+
+.lede {
+  max-width: 40rem;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--leaf);
+  margin: 0 0 0.35rem;
+}
+
+.muted {
+  color: rgba(20, 35, 28, 0.62);
+}
+
+.tiny {
+  font-size: 0.85rem;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  animation: rise 0.65s ease both;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 800px) {
+  .home-grid,
+  .session-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  margin: 0.75rem 0;
+}
+
+input {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  background: white;
+  color: var(--ink);
+}
+
+button,
+.primary {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  background: var(--moss);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.75rem 1.2rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+button:hover:not(:disabled),
+.primary:hover {
+  background: var(--leaf);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.linkish {
+  background: transparent;
+  color: var(--coral);
+  padding: 0;
+  border-radius: 0;
+  font-weight: 600;
+}
+
+.learner-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.learner-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.92rem;
+}
+
+.loop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  counter-reset: step;
+}
+
+.loop li {
+  counter-increment: step;
+  background: var(--sand);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.92rem;
+}
+
+.loop li::before {
+  content: counter(step) ". ";
+  font-weight: 700;
+  color: var(--moss);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.session-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 1rem;
+}
+
+.chat-panel h1,
+.parent-hero h1,
+.model-panel h2 {
+  font-family: var(--font-display), Georgia, serif;
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: min(58vh, 560px);
+  overflow: auto;
+  padding-right: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.bubble {
+  border-radius: 16px;
+  padding: 0.75rem 0.9rem;
+  max-width: 92%;
+  animation: rise 0.35s ease both;
+}
+
+.bubble.tutor {
+  background: #e8f2ec;
+  border: 1px solid rgba(31, 77, 58, 0.12);
+  align-self: flex-start;
+}
+
+.bubble.child {
+  background: #fff8eb;
+  border: 1px solid rgba(226, 168, 75, 0.35);
+  align-self: flex-end;
+}
+
+.bubble header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(20, 35, 28, 0.55);
+}
+
+.bubble p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.tag {
+  background: white;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  color: var(--moss);
+  text-transform: lowercase;
+}
+
+.composer {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.composer input {
+  flex: 1;
+}
+
+.model-panel .stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+
+.model-panel .stats div {
+  background: var(--sand);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+}
+
+.model-panel dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(20, 35, 28, 0.55);
+}
+
+.model-panel dd {
+  margin: 0.15rem 0 0;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.section {
+  margin-top: 0.9rem;
+}
+
+.section ul,
+.panel ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.note {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.demo-caption {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 5;
+  margin-bottom: 0.75rem;
+  background: var(--ink);
+  color: white;
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  animation: rise 0.4s ease both;
+}
+
+.error {
+  color: var(--coral);
+  font-size: 0.9rem;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

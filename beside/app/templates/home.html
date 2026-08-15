@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Beside · Home{% endblock %}
+{% block content %}
+<section class="grid">
+  <form class="card" method="post" action="/children">
+    <p class="eyebrow">New child</p>
+    <h1>Start a learner</h1>
+    <label>Name <input name="name" value="Asha" required maxlength="40" /></label>
+    <label>Age <input name="age" type="number" min="8" max="14" value="10" required /></label>
+    <label>Interest <input name="interest" value="cricket" required /></label>
+    <label>Skill
+      <select name="skill_focus">
+        <option value="arithmetic">Arithmetic</option>
+        <option value="reading">Reading</option>
+        <option value="writing">Writing</option>
+      </select>
+    </label>
+    <button type="submit">Create & open classroom</button>
+  </form>
+
+  <section class="card">
+    <p class="eyebrow">Saved children</p>
+    <h2>Continue</h2>
+    {% if children %}
+      <ul class="list">
+        {% for c in children %}
+        <li>
+          <div>
+            <strong>{{ c.name }}</strong>, {{ c.age }}
+            <span class="muted">· {{ c.interest }} · {{ c.session_count }} sessions · {{ c.skill_focus }}</span>
+          </div>
+          <div class="actions">
+            <a href="/children/{{ c.id }}/session">Classroom</a>
+            <a href="/children/{{ c.id }}/parent">Parent view</a>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No children yet. Create one to begin.</p>
+    {% endif %}
+  </section>
+</section>
+
+<section class="card explain">
+  <p class="eyebrow">How it grows</p>
+  <p>Each session updates what clicked, what’s stuck, and misconceptions for <em>that</em> child. The next session starts from that memory, not from zero.</p>
+</section>
+{% endblock %}

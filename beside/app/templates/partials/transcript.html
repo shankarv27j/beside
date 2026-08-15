@@ -1,0 +1,22 @@
+{% for t in turns %}
+  <article class="bubble child">
+    <header>Child</header>
+    <p>{{ t.child_message }}</p>
+  </article>
+  <article class="bubble tutor">
+    <header>
+      Tutor
+      {% if t.move %}<span class="tag">{{ t.move }}</span>{% endif %}
+      {% if t.affect %}<span class="tag">{{ t.affect }}</span>{% endif %}
+    </header>
+    <p>{{ t.tutor_reply }}</p>
+    <form class="rate" method="post" action="/turns/{{ t.id }}/rate">
+      <input type="hidden" name="next" value="/sessions/{{ t.session_id }}" />
+      <button name="rating" value="me" type="submit">That’s me</button>
+      <button name="rating" value="not_me" type="submit" class="ghost">Not me</button>
+      {% if t.human_rating %}<span class="muted">Rated: {{ t.human_rating }}</span>{% endif %}
+    </form>
+  </article>
+{% else %}
+  <p class="muted">Say hi to start. The crew will observe → choose a move → reply → remember.</p>
+{% endfor %}

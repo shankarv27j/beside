@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Beside · Parent · {{ child.name }}{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="row">
+    <div>
+      <p class="eyebrow">Parent view</p>
+      <h1>{{ child.name }}</h1>
+      <p class="muted">What a devoted tutor would tell you</p>
+    </div>
+    <div class="actions">
+      <a href="/children/{{ child.id }}/session">Back to classroom</a>
+      <a href="/">Home</a>
+    </div>
+  </div>
+</section>
+
+<div class="grid">
+  <article class="card">
+    <p class="eyebrow">What clicked</p>
+    <ul>{% for x in clicked %}<li>{{ x }}</li>{% else %}<li class="muted">None yet</li>{% endfor %}</ul>
+  </article>
+  <article class="card">
+    <p class="eyebrow">What’s stuck</p>
+    <ul>{% for x in stuck %}<li>{{ x }}</li>{% else %}<li class="muted">Nothing stuck</li>{% endfor %}</ul>
+  </article>
+  <article class="card">
+    <p class="eyebrow">Misconceptions</p>
+    <ul>{% for x in misconceptions %}<li>{{ x }}</li>{% else %}<li class="muted">None yet</li>{% endfor %}</ul>
+  </article>
+  <article class="card">
+    <p class="eyebrow">Tutor notes</p>
+    <p>{{ child.notes }}</p>
+    <p class="muted">Sessions: {{ child.session_count }} · Affect: {{ child.affect }} · Focus: {{ child.skill_focus }}</p>
+  </article>
+</div>
+{% endblock %}
