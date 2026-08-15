@@ -8,13 +8,10 @@
 |------|---------|
 | [`beside/`](beside/) | **Main path:** FastAPI + CrewAI (Observer → Strategist → Tutor → Memory) |
 | [`web/`](web/) | Early Next.js sketch (optional / legacy) |
-| [`yc-application/`](yc-application/) | YC application drafts |
+| [`yc-application/`](yc-application/) | YC application drafts (no video files) |
 
-## 48-hour path
+## Quick start
 
-1. Read [`yc-application/ANSWERS.md`](yc-application/ANSWERS.md) and personalize.  
-2. Run the demo: `cd web && npm install && npm run dev`.  
-3. Record Demo Play or a real child session ([`yc-application/SESSION_DEMO.md`](yc-application/SESSION_DEMO.md)).  
-4. Run parent outreach ([`yc-application/PARENT_OUTREACH.md`](yc-application/PARENT_OUTREACH.md)).  
-5. Record founder video ([`yc-application/FOUNDER_VIDEO.md`](yc-application/FOUNDER_VIDEO.md)).  
-6. Submit via [`yc-application/SUBMIT.md`](yc-application/SUBMIT.md) before **July 27, 2026 8pm PT**.
+1. Product: `cd beside` — see [`beside/README.md`](beside/README.md).  
+2. YC drafts: [`yc-application/ANSWERS.md`](yc-application/ANSWERS.md).  
+3. Checklist: [`yc-application/SUBMIT.md`](yc-application/SUBMIT.md).

@@ -22,9 +22,8 @@ Do these in order. Aim to hit **Submit by end of July 26 IST**.
 
 ## 4. Founder video (60s)
 
-- [ ] Record from bullets in `FOUNDER_VIDEO.md`  
-- [ ] Founders only, no product walkthrough  
-- [ ] Upload → YC **video** field  
+- [ ] Record ~60s, you talking only (bullets in `ANSWERS.md`) — keep the file off this repo
+- [ ] Upload → YC **video** field only  
 
 ## 5. Written application
 
