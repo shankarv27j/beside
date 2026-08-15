@@ -15,7 +15,10 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# YC / demo recordings — upload to YC only, not this repo
+# Private / not for GitHub
+yc-application/
+
+# Demo recordings
 *.mp4
 *.mov
 *.webm

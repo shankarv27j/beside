@@ -26,7 +26,7 @@ cd web
 npx vercel --yes
 ```
 
-Paste the URL into `yc-application/ANSWERS.md` and the YC form.
+Paste the URL into the YC form if you use one.
 
 ## What to show partners
 
