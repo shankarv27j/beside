@@ -46,9 +46,9 @@ cd C:\Users\SHANKAR-KRISHNA\primerycomb\beside
 .\.venv\Scripts\python.exe -m app.voice_agent dev
 ```
 
-Then open http://localhost:8000 → create/open a child → **Join voice** → allow mic → speak.
+Then open http://localhost:8000 → create/open a child → **Join video call** (camera + mic) or **Voice only** → speak.
 
-Flow: mic → LiveKit STT → Beside `process_turn` → LiveKit TTS → you hear the tutor. Refresh the page to see voice turns in the transcript.
+Flow: mic/camera → LiveKit → STT → Beside `process_turn` → TTS. The AI tutor is voice-only for now (placeholder tile); your camera shows in the call stage. Refresh the page to see turns in the transcript.
 
 STT/TTS use **LiveKit Inference** (billed on your LiveKit Cloud project). The mentor reply uses your `LLM_PROVIDER` (Ollama, OpenAI, or Groq).
 

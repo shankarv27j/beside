@@ -18,16 +18,29 @@
       </div>
     </div>
 
+    <div class="call-stage hidden" id="call-stage" aria-live="polite">
+      <div class="call-tile tutor-tile">
+        <div class="call-avatar" aria-hidden="true">B</div>
+        <p class="call-label">Beside tutor</p>
+        <p class="call-sub muted" id="tutor-call-state">Waiting…</p>
+      </div>
+      <div class="call-tile child-tile">
+        <video id="local-video" autoplay playsinline muted></video>
+        <p class="call-label">{{ child.name }}</p>
+      </div>
+    </div>
+
     <div class="voice-bar" data-session-id="{{ session.id }}">
       <div class="voice-actions">
-        <button type="button" id="voice-join" class="ghost">Join voice</button>
+        <button type="button" id="video-join" class="ghost">Join video call</button>
+        <button type="button" id="voice-join" class="ghost">Voice only</button>
         <button type="button" id="voice-leave" class="ghost" disabled>Leave</button>
       </div>
-      <p id="voice-status" class="muted">Voice uses LiveKit. Run the voice agent in a second terminal.</p>
+      <p id="voice-status" class="muted">LiveKit call — run the voice agent in a second terminal. Video shows your camera; tutor speaks by voice.</p>
     </div>
 
     <div id="thinking" class="thinking hidden" aria-live="polite">
-      Tutor is thinking… (local Ollama can take 10–30s)
+      Tutor is thinking…
     </div>
 
     <div id="transcript" class="transcript">
@@ -38,7 +51,7 @@
       <input id="message" name="message" placeholder="Reply as {{ child.name }}…" required autocomplete="off" />
       <button id="send" type="submit">Send</button>
     </form>
-    <p id="status" class="muted">Text and voice both use the same mentor brain. Refresh after voice turns to see them here.</p>
+    <p id="status" class="muted">Text, voice, and video all use the same mentor brain. Refresh after live turns to see them here.</p>
   </section>
 
   <aside class="card model">
@@ -69,9 +82,13 @@
   const message = document.getElementById("message");
   const status = document.getElementById("status");
   const transcript = document.getElementById("transcript");
+  const videoJoin = document.getElementById("video-join");
   const voiceJoin = document.getElementById("voice-join");
   const voiceLeave = document.getElementById("voice-leave");
   const voiceStatus = document.getElementById("voice-status");
+  const callStage = document.getElementById("call-stage");
+  const localVideo = document.getElementById("local-video");
+  const tutorCallState = document.getElementById("tutor-call-state");
   const sessionId = document.querySelector(".voice-bar").dataset.sessionId;
 
   let room = null;
@@ -80,7 +97,28 @@
     voiceStatus.textContent = text;
   }
 
-  voiceJoin.addEventListener("click", async () => {
+  function setConnectedUi(withVideo) {
+    videoJoin.disabled = true;
+    voiceJoin.disabled = true;
+    voiceLeave.disabled = false;
+    callStage.classList.toggle("hidden", !withVideo);
+    if (!withVideo) {
+      localVideo.srcObject = null;
+    }
+  }
+
+  function resetCallUi() {
+    videoJoin.disabled = false;
+    voiceJoin.disabled = false;
+    voiceLeave.disabled = true;
+    callStage.classList.add("hidden");
+    localVideo.srcObject = null;
+    tutorCallState.textContent = "Waiting…";
+    document.querySelectorAll("[data-beside-audio]").forEach((el) => el.remove());
+  }
+
+  async function joinLiveKit({ withVideo }) {
+    videoJoin.disabled = true;
     voiceJoin.disabled = true;
     setVoiceStatus("Getting LiveKit token…");
     try {
@@ -103,44 +141,76 @@
       if (!LK) {
         throw new Error("LiveKit client failed to load from CDN");
       }
-      room = new LK.Room();
-      room.on(LK.RoomEvent.Disconnected, () => {
-        setVoiceStatus("Disconnected from voice.");
-        voiceJoin.disabled = false;
-        voiceLeave.disabled = true;
-        room = null;
+
+      room = new LK.Room({
+        adaptiveStream: true,
+        dynacast: true,
       });
+
+      room.on(LK.RoomEvent.Disconnected, () => {
+        setVoiceStatus("Disconnected from call.");
+        room = null;
+        resetCallUi();
+      });
+
       room.on(LK.RoomEvent.TrackSubscribed, (track) => {
         if (track.kind === LK.Track.Kind.Audio) {
           const el = track.attach();
           el.dataset.besideAudio = "1";
           document.body.appendChild(el);
-          setVoiceStatus("Connected — tutor can speak. Talk when ready.");
+          tutorCallState.textContent = "Speaking / listening";
+          setVoiceStatus(
+            withVideo
+              ? "Video call connected — speak with the tutor."
+              : "Connected — tutor can speak. Talk when ready."
+          );
+        }
+        if (track.kind === LK.Track.Kind.Video) {
+          // Future: attach remote human/avatar video here
+        }
+      });
+
+      room.on(LK.RoomEvent.LocalTrackPublished, (pub) => {
+        if (pub.track && pub.track.kind === LK.Track.Kind.Video) {
+          pub.track.attach(localVideo);
         }
       });
 
       setVoiceStatus("Connecting to LiveKit…");
       await room.connect(data.url, data.token);
       await room.localParticipant.setMicrophoneEnabled(true);
-      voiceLeave.disabled = false;
-      setVoiceStatus("Connected — mic on. Speak as the child.");
+
+      if (withVideo) {
+        await room.localParticipant.setCameraEnabled(true);
+        const camPub = room.localParticipant.getTrackPublication(LK.Track.Source.Camera);
+        if (camPub && camPub.track) {
+          camPub.track.attach(localVideo);
+        }
+        tutorCallState.textContent = "On call (voice)";
+        setConnectedUi(true);
+        setVoiceStatus("Video call connected — camera + mic on.");
+      } else {
+        setConnectedUi(false);
+        setVoiceStatus("Connected — mic on. Speak as the child.");
+      }
     } catch (err) {
-      voiceJoin.disabled = false;
+      resetCallUi();
       const msg = err && err.message ? err.message : String(err);
       setVoiceStatus(msg);
-      console.error("Join voice failed", err);
+      console.error("Join call failed", err);
     }
-  });
+  }
+
+  videoJoin.addEventListener("click", () => joinLiveKit({ withVideo: true }));
+  voiceJoin.addEventListener("click", () => joinLiveKit({ withVideo: false }));
 
   voiceLeave.addEventListener("click", async () => {
     if (room) {
       await room.disconnect();
       room = null;
     }
-    document.querySelectorAll("[data-beside-audio]").forEach((el) => el.remove());
-    voiceJoin.disabled = false;
-    voiceLeave.disabled = true;
-    setVoiceStatus("Left voice room.");
+    resetCallUi();
+    setVoiceStatus("Left call.");
   });
 
   form.addEventListener("submit", async (event) => {
