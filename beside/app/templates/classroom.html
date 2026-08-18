@@ -18,8 +18,16 @@
       </div>
     </div>
 
+    <div class="voice-bar" data-session-id="{{ session.id }}">
+      <div class="voice-actions">
+        <button type="button" id="voice-join" class="ghost">Join voice</button>
+        <button type="button" id="voice-leave" class="ghost" disabled>Leave</button>
+      </div>
+      <p id="voice-status" class="muted">Voice uses LiveKit. Run the voice agent in a second terminal.</p>
+    </div>
+
     <div id="thinking" class="thinking hidden" aria-live="polite">
-      Tutor is thinking… (fast mode: one model call)
+      Tutor is thinking… (local Ollama can take 10–30s)
     </div>
 
     <div id="transcript" class="transcript">
@@ -30,7 +38,7 @@
       <input id="message" name="message" placeholder="Reply as {{ child.name }}…" required autocomplete="off" />
       <button id="send" type="submit">Send</button>
     </form>
-    <p id="status" class="muted">Fast mentor mode by default. CrewAI 4-agent mode: set MENTOR_MODE=crew in .env</p>
+    <p id="status" class="muted">Text and voice both use the same mentor brain. Refresh after voice turns to see them here.</p>
   </section>
 
   <aside class="card model">
@@ -53,6 +61,7 @@
   </aside>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
 <script>
   const form = document.getElementById("composer");
   const thinking = document.getElementById("thinking");
@@ -60,6 +69,79 @@
   const message = document.getElementById("message");
   const status = document.getElementById("status");
   const transcript = document.getElementById("transcript");
+  const voiceJoin = document.getElementById("voice-join");
+  const voiceLeave = document.getElementById("voice-leave");
+  const voiceStatus = document.getElementById("voice-status");
+  const sessionId = document.querySelector(".voice-bar").dataset.sessionId;
+
+  let room = null;
+
+  function setVoiceStatus(text) {
+    voiceStatus.textContent = text;
+  }
+
+  voiceJoin.addEventListener("click", async () => {
+    voiceJoin.disabled = true;
+    setVoiceStatus("Getting LiveKit token…");
+    try {
+      const res = await fetch(`/sessions/${sessionId}/livekit/token`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail = data.detail;
+        const msg = typeof detail === "string"
+          ? detail
+          : Array.isArray(detail)
+            ? detail.map((d) => d.msg || JSON.stringify(d)).join("; ")
+            : "Could not get LiveKit token";
+        throw new Error(msg);
+      }
+      if (!data.url || !data.token) {
+        throw new Error("Token response missing url or token");
+      }
+
+      const LK = window.LivekitClient;
+      if (!LK) {
+        throw new Error("LiveKit client failed to load from CDN");
+      }
+      room = new LK.Room();
+      room.on(LK.RoomEvent.Disconnected, () => {
+        setVoiceStatus("Disconnected from voice.");
+        voiceJoin.disabled = false;
+        voiceLeave.disabled = true;
+        room = null;
+      });
+      room.on(LK.RoomEvent.TrackSubscribed, (track) => {
+        if (track.kind === LK.Track.Kind.Audio) {
+          const el = track.attach();
+          el.dataset.besideAudio = "1";
+          document.body.appendChild(el);
+          setVoiceStatus("Connected — tutor can speak. Talk when ready.");
+        }
+      });
+
+      setVoiceStatus("Connecting to LiveKit…");
+      await room.connect(data.url, data.token);
+      await room.localParticipant.setMicrophoneEnabled(true);
+      voiceLeave.disabled = false;
+      setVoiceStatus("Connected — mic on. Speak as the child.");
+    } catch (err) {
+      voiceJoin.disabled = false;
+      const msg = err && err.message ? err.message : String(err);
+      setVoiceStatus(msg);
+      console.error("Join voice failed", err);
+    }
+  });
+
+  voiceLeave.addEventListener("click", async () => {
+    if (room) {
+      await room.disconnect();
+      room = null;
+    }
+    document.querySelectorAll("[data-beside-audio]").forEach((el) => el.remove());
+    voiceJoin.disabled = false;
+    voiceLeave.disabled = true;
+    setVoiceStatus("Left voice room.");
+  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -70,7 +152,6 @@
     send.disabled = true;
     status.textContent = "Waiting for mentor reply…";
 
-    // Optimistic: show the child's message immediately
     const childBubble = document.createElement("article");
     childBubble.className = "bubble child";
     childBubble.innerHTML = "<header>Child</header><p></p>";
@@ -91,7 +172,6 @@
       if (!res.ok) {
         throw new Error(data.detail || "Tutor failed");
       }
-      // Reload so learner model + ratings render from server
       window.location.href = data.redirect || window.location.pathname;
     } catch (err) {
       thinking.classList.add("hidden");

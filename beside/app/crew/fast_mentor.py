@@ -1,8 +1,7 @@
 """Fast path: one LLM call instead of 4 CrewAI agents.
 
 Same outputs (reply, affect, move, memory). Much lower latency for a working classroom.
-Uses Ollama native /api/chat (more reliable than /v1 on some Windows installs)
-or OpenAI chat completions when LLM_PROVIDER=openai.
+Uses Ollama native /api/chat, or OpenAI-compatible chat (OpenAI / Groq).
 """
 
 from __future__ import annotations
@@ -14,7 +13,8 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-from openai import OpenAI
+
+from app.crew.llm_config import get_chat_client
 
 OS_PATH = Path(__file__).with_name("mentoring_os.md")
 
@@ -50,9 +50,8 @@ def _extract_json(text: str) -> dict[str, Any]:
 def _chat(messages: list[dict[str, str]]) -> str:
     provider = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
 
-    if provider == "openai":
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        model = os.getenv("OPENAI_MODEL_NAME", "gpt-4o-mini")
+    if provider in {"openai", "groq"}:
+        client, model = get_chat_client()
         completion = client.chat.completions.create(
             model=model,
             temperature=0.5,

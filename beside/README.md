@@ -20,25 +20,53 @@ Stored per child:
 
 That compounding memory is the “grows with each child” product.
 
-## Interfaces now → face to face later
+## Interfaces
 
-| Phase | Interface | What you add |
+| Phase | Interface | Status |
 |---|---|---|
-| **Now** | Web classroom (this app) | Text chat + learner panel + parent view + “That’s me / Not me” |
-| **Next** | Voice classroom | Whisper (child speaks) + TTS (tutor speaks). Same crew underneath |
-| **Later** | Face to face feel | Camera optional, avatar/talking head, or LiveKit if a human jumps in |
+| **Now** | Text classroom (FastAPI + Streamlit) | Working |
+| **Now** | Voice classroom (LiveKit) | Working — see below |
+| **Next** | Stronger presence | Camera optional, richer voice |
 
-Same mentor brain. Only the I/O layer changes (text → voice → richer presence).
+Same mentor brain (`process_turn`). Text and voice both write learner memory.
 
-## Latency: what we changed
+## Voice classroom (LiveKit)
 
-| Before | After (default) |
-|---|---|
-| 4 CrewAI agents per message (30–120s) | **1 model call** (`MENTOR_MODE=fast`) |
-| Frozen form submit | **Thinking banner** + optimistic child bubble via `fetch` |
-| Crew only | Fast path now; set `MENTOR_MODE=crew` to compare |
+You need **two terminals** and LiveKit Cloud keys in `.env`.
 
-**Async?** Browser side yes (`fetch` + UI). Server stays a normal sync request for SQLite safety. That is enough for a working local app. Later: queues / streaming if you need more.
+**Terminal 1 — website**
+```powershell
+cd C:\Users\SHANKAR-KRISHNA\primerycomb\beside
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+```
+
+**Terminal 2 — voice agent**
+```powershell
+cd C:\Users\SHANKAR-KRISHNA\primerycomb\beside
+.\.venv\Scripts\python.exe -m app.voice_agent dev
+```
+
+Then open http://localhost:8000 → create/open a child → **Join voice** → allow mic → speak.
+
+Flow: mic → LiveKit STT → Beside `process_turn` → LiveKit TTS → you hear the tutor. Refresh the page to see voice turns in the transcript.
+
+STT/TTS use **LiveKit Inference** (billed on your LiveKit Cloud project). The mentor reply uses your `LLM_PROVIDER` (Ollama, OpenAI, or Groq).
+
+### Groq (free tier, much faster than local Ollama)
+
+1. Create a key at [console.groq.com](https://console.groq.com)
+2. Put in `.env`:
+
+```env
+LLM_PROVIDER=groq
+GROQ_API_KEY=gsk_...
+GROQ_MODEL=openai/gpt-oss-20b
+MENTOR_MODE=fast
+```
+
+Smarter options: `openai/gpt-oss-120b` or `qwen/qwen3.6-27b`  
+(Older IDs like `llama-3.1-8b-instant` were retired by Groq.)  
+Restart uvicorn (and the voice agent) after changing `.env`.
 
 Switch to OpenAI anytime:
 ```env
@@ -59,15 +87,13 @@ That is how the model becomes a replica of you, not just a generic tutor.
 
 ## UI options
 
-### Streamlit (recommended for you)
+### Streamlit (text classroom)
 ```powershell
 cd C:\Users\SHANKAR-KRISHNA\primerycomb\beside
-.\.venv\Scripts\python.exe -m pip install streamlit
 .\.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py
 ```
-Opens a Python-native classroom: Home, Classroom (chat + learner model), Parent view, That’s me / Not me.
 
-### FastAPI + Jinja (older HTML UI)
+### FastAPI + Jinja (text + LiveKit voice)
 ```powershell
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
@@ -80,7 +106,9 @@ Same mentor brain + SQLite memory either way.
 ```text
 beside/
   app/
-    main.py           # UI + routes
+    main.py           # UI + routes + LiveKit token
+    livekit_auth.py   # mint join tokens + agent dispatch
+    voice_agent.py    # LiveKit worker: STT → process_turn → TTS
     models.py         # Child, Session, Turn
     memory.py         # merge profile across turns
     services.py       # create child, process turn
